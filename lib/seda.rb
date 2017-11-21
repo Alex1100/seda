@@ -91,24 +91,19 @@ module Seda
     end
   end
 
-  def self.intersection(*arrays)
+  def intersection(*arrays)
     result = []
+    seen = {}
 
-    checker = (eval(local_variables[0].to_s))[0]
-    iterables = (eval(local_variables[0].to_s))[1..-1]
+    iterables = (eval(local_variables[0].to_s))[0..-1]
 
-    checker.each do |item|
-      is_shared = false
-      iterables.each_with_index do |check|
-        check.each do |inner_item|
-          if item == inner_item
-            is_shared = true
-          end
-        end
-      end
+    iterables.flatten.each do |element|
+      seen[element] == nil ? seen[element] = 1 : seen[element] += 1
+    end
 
-      if is_shared == true
-        result << item
+    for k in seen
+      if k[1] == iterables.length
+        result << k[0]
       end
     end
 
@@ -311,6 +306,33 @@ module Seda
 
     accumulator
   end
+
+
+  def self.difference(*arrays)
+    checker = (eval(local_variables[0].to_s))[0]
+    iterables = (eval(local_variables[0].to_s))[1..-1]
+
+    arr = []
+    seen = {}
+
+    checker.each do |element|
+      seen[element] = element
+      arr << element
+    end
+
+    iterables.each do |inner_arr|
+      inner_arr.each do |element|
+        if seen[element]
+          arr = arr.reject{|el| el == element}
+        end
+      end
+    end
+
+    arr
+  end
+
+
+
 
 
 end
