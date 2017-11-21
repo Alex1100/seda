@@ -62,7 +62,7 @@ module Seda
         end
       end
     else
-      raise ArgumentError.new('Must pass in the destination object as first argument, and additional argument objects to extend values from')
+      raise ArgumentError.new('Must pass in the destination Hash as first argument, and additional argument objects to extend values from')
     end
 
     return final_object
@@ -89,9 +89,13 @@ module Seda
         end
       end
     else
-      raise ArgumentError.new('Must pass in the destination object as first argument, and additional argument objects to extend values from')
+      raise ArgumentError.new('Must pass in the destination Hash as first argument, and additional argument objects to extend values from')
     end
   end
+
+  def self.
+
+
 
 
 
