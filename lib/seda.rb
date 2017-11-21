@@ -349,6 +349,43 @@ module Seda
   end
 
 
+  def self.every(collection, some_method)
+    collection.each do |item|
+      if some_method.class == Method
+        if !some_method.call(item)
+          return false
+        end
+      elsif some_method.class == Symbol
+        if !method(some_method).call(item)
+          return false
+        end
+      elsif some_method.class == String
+        if !method(some_method.to_sym).call(item)
+          return false
+        end
+      else
+        raise ArgumentError.new('First argument must reference a method')
+      end
+    end
+    return true
+  end
+
+
+  def self.flatten(nested_array, result = [])
+    nested_array.each do |element|
+      if element.class == Array
+        self.flatten(element, result)
+      else
+        result << element
+      end
+    end
+
+    result
+  end
+
+
+
+
 
 
 
