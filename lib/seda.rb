@@ -459,6 +459,33 @@ module Seda
   end
 
 
+  def self.sort_by_max(collection)
+    if collection.class == Hash
+      result = {}
+      arr = collection.sort{|a, b| b <=> a }
+      arr.flatten.uniq.inject({}) do |memo, item|
+        result[item] = item
+      end
+
+      return result
+    elsif collection.class == Array
+      collection.sort!{|a, b| b <=> a }
+    end
+  end
+
+  def self.sort_by_min(collection)
+    if collection.class == Hash
+      result = {}
+      arr = collection.sort{|a, b| a <=> b }
+      arr.flatten.uniq.inject({}) do |memo, item|
+        result[item] = item
+      end
+
+      return result
+    elsif collection.class == Array
+      collection.sort!{|a, b| a <=> b }
+    end
+  end
 
 
 
