@@ -384,10 +384,63 @@ module Seda
   end
 
 
+  def self.map(collection, some_method)
+    arr = []
+
+    if collection.class == Array
+      collection.each_with_index do |element, idx|
+        if some_method.class == String
+          arr << method(some_method.to_sym).call(element, idx, collection)
+        elsif some_method.class == Symbol
+          arr << method(some_method).call(element, idx, collection)
+        elsif some_method.class == Method
+          arr << some_method.call(element, idx, collection)
+        else
+          raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
+        end
+      end
+    elsif collection.class == Hash
+      for k in collection
+        if some_method.class == String
+          arr << method(some_method.to_sym).call(k[1], k[0], collection)
+        elsif some_method.class == Symbol
+          arr << method(some_method).call(k[1], k[0], collection)
+        elsif some_method.class == Method
+          arr << some_method.call(k[1], k[0], collection)
+        else
+          raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
+        end
+      end
+    else
+       raise ArgumentError.new('Must provide an Array, or a Hash as the first Argument.')
+    end
+
+    arr
+  end
 
 
 
+  def self.memoize(some_method, *some_method_args)
+    storage = {}
+    result = ''
+    b = eval(local_variables[1].to_s)
 
+    if some_method.class == String
+      some_method = method(some_method.to_sym)
+    elsif some_method.class == Symbol
+      some_method = method(some_method)
+    end
+
+    result = lambda{|a = b, arg = b.to_json|
+      if !storage[arg]
+        storage[arg] = some_method.call(*a)
+      end
+
+      return storage[arg]
+    }
+
+    return result.call(b)
+  end
 
 
 
