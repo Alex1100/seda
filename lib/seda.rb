@@ -238,9 +238,62 @@ module Seda
   end
 
 
+  def self.reduce(collection, some_method)
+    accumulator = ''
+    counter = 0
 
+    if collection.class == Array
+      accumulator = collection[0]
+      collection.each_with_index do |element, idx|
+        if counter == 0
+          counter = 1
+          next
+        end
+        if some_method.class == String
+          args = method(some_method).parameters.map { |arg| arg[1].to_s }
+          if args.length < 3
+            accumulator = method(some_method.to_sym).call(accumulator, element)
+          else
+            accumulator = method(some_method.to_sym).call(accumulator, element, idx)
+          end
+        elsif some_method.class == Symbol
+          args = method(some_method).parameters.map { |arg| arg[1].to_s }
+          if args.length < 3
+            accumulator = method(some_method).call(accumulator, element)
+          else
+            accumulator = method(some_method).call(accumulator, element, idx)
+          end
+        elsif some_method.class == Method
+          args = some_method.parameters.map { |arg| arg[1].to_s }
+          if args.length < 3
+            accumulator = some_method.call(accumulator, element)
+          else
+            accumulator = some_method.call(accumulator, element, idx)
+          end
+        end
+      end
+    elsif collection.class == Hash
+      accumulator = collection.values[0]
+      for k in collection
+        if counter == 0
+          counter = 1
+          next
+        else
+          if some_method.class == String
+            accumulator = method(some_method.to_sym).call(accumulator, k[1])
+          elsif some_method.class == Symbol
+            accumulator = method(some_method).call(accumulator, k[1])
+          elsif some_method.class == Method
+            accumulator = some_method.call(accumulator, k[1])
+          end
+        end
+      end
+    else
+      return collection
+    end
 
-
+    accumulator
+  end
 
 
 end
