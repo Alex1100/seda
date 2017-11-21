@@ -192,8 +192,53 @@ module Seda
 
 
   def self.reject(collection, some_method)
+    arr = []
 
+    if collection.class == Array
+      collection.each_with_index do |element, idx|
+        if some_method.class == String
+          if !method(some_method.to_sym).call(element, idx)
+            arr << element
+          end
+        elsif some_method.class == Symbol
+          if !method(some_method).call(element, idx)
+            arr << element
+          end
+        elsif some_method.class == Method
+          if !some_method.call(element, idx)
+            arr << element
+          end
+        else
+          raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
+        end
+      end
+    elsif collection.class == Hash
+      for k in collection
+        if some_method.class == String
+          if !method(some_method.to_sym).call(k[1])
+            arr << k[1]
+          end
+        elsif some_method.class == Symbol
+          if !method(some_method).call(k[1])
+            arr << k[1]
+          end
+        elsif some_method.class == Method
+          if !some_method.call(k[1])
+            arr << k[1]
+          end
+        else
+          raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
+        end
+      end
+    else
+       raise ArgumentError.new('Must provide an Array, or a Hash as the first Argument.')
+    end
+
+    arr
   end
+
+
+
 
 
 
