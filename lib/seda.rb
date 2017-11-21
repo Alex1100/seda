@@ -91,7 +91,7 @@ module Seda
     end
   end
 
-  def intersection(*arrays)
+  def self.intersection(*arrays)
     result = []
     seen = {}
 
@@ -440,6 +440,26 @@ module Seda
 
     return result.call(b)
   end
+
+
+  def self.some(collection, some_method)
+    collection.each do |item|
+      if some_method.class == Method
+        return !some_method.call(item)
+      elsif some_method.class == Symbol
+        return !method(some_method).call(item)
+      elsif some_method.class == String
+        return !method(some_method.to_sym).call(item)
+      else
+        raise ArgumentError.new('First argument must reference a method')
+      end
+    end
+
+    return true
+  end
+
+
+
 
 
 
