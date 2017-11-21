@@ -43,7 +43,6 @@ module Seda
     if final_object != nil && iterables.class == Array
       iterables.each do |element|
         if element.class == Hash
-          p element.class
           for k in element
             if final_object[k[0].to_s] == nil
               final_object[k[0].to_s] = k[1]
@@ -76,7 +75,6 @@ module Seda
     if final_object != nil && iterables.class == Array
       iterables.each do |element|
         if element.class == Hash
-          p element.class
           for k in element
             final_object[k[0].to_s] = k[1]
           end
