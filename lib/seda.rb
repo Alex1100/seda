@@ -69,6 +69,31 @@ module Seda
   end
 
 
+  def self.extend(*obj)
+    final_object = (eval(local_variables[0].to_s))[0]
+    iterables = (eval(local_variables[0].to_s))[1..-1]
+
+    if final_object != nil && iterables.class == Array
+      iterables.each do |element|
+        if element.class == Hash
+          p element.class
+          for k in element
+            final_object[k[0].to_s] = k[1]
+          end
+        elsif element.class == Array
+          element.each do |item|
+            final_object[item.to_s] = item
+          end
+        else
+          final_object[element.to_s] = element
+        end
+      end
+    else
+      raise ArgumentError.new('Must pass in the destination object as first argument, and additional argument objects to extend values from')
+    end
+  end
+
+
 
 
 
