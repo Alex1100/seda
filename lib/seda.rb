@@ -93,7 +93,32 @@ module Seda
     end
   end
 
-  def self.
+  def self.intersection(*arrays)
+    result = []
+
+    checker = (eval(local_variables[0].to_s))[0]
+    iterables = (eval(local_variables[0].to_s))[1..-1]
+
+    checker.each do |item|
+      is_shared = false
+      iterables.each_with_index do |check|
+        check.each do |inner_item|
+          if item == inner_item
+            is_shared = true
+          end
+        end
+      end
+
+      if is_shared == true
+        result << item
+      end
+    end
+
+    result
+  end
+
+
+  def self.memoize
 
 
 
