@@ -332,6 +332,25 @@ module Seda
   end
 
 
+  def self.delay(some_method, wait, *some_method_args)
+    args = eval(local_variables[2].to_s)
+    if some_method.class == Method
+      sleep (wait.to_f/1000)
+      some_method.call(*args)
+    elsif some_method.class == Symbol
+      sleep (wait.to_f/1000)
+      method(some_method).call(*args)
+    elsif some_method.class == String
+      sleep (wait.to_f/1000)
+      method(some_method.to_sym).call(*args)
+    else
+      raise ArgumentError.new('First argument must reference a method')
+    end
+  end
+
+
+
+
 
 
 
