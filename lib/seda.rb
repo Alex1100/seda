@@ -419,7 +419,6 @@ module Seda
   end
 
 
-
   def self.memoize(some_method, *some_method_args)
     storage = {}
     result = ''
