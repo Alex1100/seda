@@ -40,23 +40,23 @@ module Seda
     final_object = (eval(local_variables[0].to_s))[0]
     iterables = (eval(local_variables[0].to_s))[1..-1]
 
-    if final_object != nil && iterables.class == Array
+    if final_object.class == Hash && iterables.class == Array
       iterables.each do |element|
         if element.class == Hash
           for k in element
-            if final_object[k[0].to_s] == nil
-              final_object[k[0].to_s] = k[1]
+            if final_object[k[0].to_sym] == nil
+              final_object[k[0].to_sym] = k[1]
             end
           end
         elsif element.class == Array
           element.each do |item|
-            if final_object[item.to_s] == nil
-              final_object[item.to_s] = item
+            if final_object[item.to_sym] == nil
+              final_object[item.to_sym] = item
             end
           end
         else
-          if final_object[element.to_s] == nil
-            final_object[element.to_s] = element
+          if final_object[element.to_sym] == nil
+            final_object[element.to_sym] = element
           end
         end
       end
@@ -69,26 +69,35 @@ module Seda
 
 
   def self.extend(*obj)
-    final_object = (eval(local_variables[0].to_s))[0]
+    initial_obj = (eval(local_variables[0].to_s))[0]
     iterables = (eval(local_variables[0].to_s))[1..-1]
+    final_object = {}
 
-    if final_object != nil && iterables.class == Array
-      iterables.each do |element|
-        if element.class == Hash
-          for k in element
-            final_object[k[0].to_s] = k[1]
+    if initial_obj.class == Hash
+      initial_obj.each do |k, v|
+        final_object[k.to_s] = v
+      end
+
+      if iterables.class == Array
+        iterables.each do |element|
+          if element.class == Hash
+            for k in element
+              final_object[k[0].to_s] = k[1]
+            end
+          elsif element.class == Array
+            element.each do |item|
+              final_object[item.to_s] = item
+            end
+          else
+            final_object[element.to_s] = element
           end
-        elsif element.class == Array
-          element.each do |item|
-            final_object[item.to_s] = item
-          end
-        else
-          final_object[element.to_s] = element
         end
       end
     else
       raise ArgumentError.new('Must pass in the destination Hash as first argument, and additional argument objects to extend values from')
     end
+
+    return final_object
   end
 
   def self.intersection(*arrays)
@@ -141,106 +150,112 @@ module Seda
 
   def self.filter(collection, some_method)
     arr = []
+    result_obj = {}
 
     if collection.class == Array
       collection.each_with_index do |element, idx|
         if some_method.class == String
-          if method(some_method.to_sym).call(element, idx)
+          if method(some_method.to_sym).call(collection, idx)
             arr << element
           end
         elsif some_method.class == Symbol
-          if method(some_method).call(element, idx)
+          if method(some_method).call(collection, idx)
             arr << element
           end
         elsif some_method.class == Method
-          if some_method.call(element, idx)
+          if some_method.call(collection, idx)
             arr << element
           end
         else
           raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
         end
       end
+      return arr
     elsif collection.class == Hash
       for k in collection
         if some_method.class == String
           if method(some_method.to_sym).call(k[1])
-            arr << k[1]
+            result_obj[k[0]] = k[1]
           end
         elsif some_method.class == Symbol
           if method(some_method).call(k[1])
-            arr << k[1]
+            result_obj[k[0]] = k[1]
           end
         elsif some_method.class == Method
           if some_method.call(k[1])
-            arr << k[1]
+            result_obj[k[0]] = k[1]
           end
         else
           raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
         end
       end
+      return result_obj
     else
        raise ArgumentError.new('Must provide an Array, or a Hash as the first Argument.')
     end
-
-    arr
   end
 
 
   def self.reject(collection, some_method)
     arr = []
+    result_obj = {}
 
     if collection.class == Array
       collection.each_with_index do |element, idx|
         if some_method.class == String
-          if !method(some_method.to_sym).call(element, idx)
+          if !method(some_method.to_sym).call(collection, idx)
             arr << element
           end
         elsif some_method.class == Symbol
-          if !method(some_method).call(element, idx)
+          if !method(some_method).call(collection, idx)
             arr << element
           end
         elsif some_method.class == Method
-          if !some_method.call(element, idx)
+          if !some_method.call(collection, idx)
             arr << element
           end
         else
           raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
         end
       end
+
+      return arr
     elsif collection.class == Hash
       for k in collection
         if some_method.class == String
           if !method(some_method.to_sym).call(k[1])
-            arr << k[1]
+            result_obj[k[0]] = k[1]
           end
         elsif some_method.class == Symbol
           if !method(some_method).call(k[1])
-            arr << k[1]
+            result_obj[k[0]] = k[1]
           end
         elsif some_method.class == Method
           if !some_method.call(k[1])
-            arr << k[1]
+            result_obj[k[0]] = k[1]
           end
         else
           raise ArgumentError.new('The second argument must be a method. You could pass in the actual method, a string of the method name, or a symbol of the method name. Both arguments are needed.')
         end
       end
+      return result_obj
     else
        raise ArgumentError.new('Must provide an Array, or a Hash as the first Argument.')
     end
-
-    arr
   end
 
 
   def self.reduce(collection, some_method)
     accumulator = ''
+    cloned_collection = Marshal.load(Marshal.dump(collection))
     counter = 0
+    optional_result_object = cloned_collection.class.new()
 
-    if collection.class == Array
-      accumulator = collection[0]
+    if cloned_collection.class == Array
+      accumulator = cloned_collection[0]
+      optional_result_object << accumulator
 
-      collection.each_with_index do |element, idx|
+      cloned_collection.each_with_index do |element, idx|
 
         if counter == 0
           counter = 1
@@ -252,8 +267,10 @@ module Seda
 
           if args.length < 3
             accumulator = method(some_method.to_sym).call(accumulator, element)
+            optional_result_object << accumulator
           else
             accumulator = method(some_method.to_sym).call(accumulator, element, idx)
+            optional_result_object << accumulator
           end
 
         elsif some_method.class == Symbol
@@ -261,8 +278,10 @@ module Seda
 
           if args.length < 3
             accumulator = method(some_method).call(accumulator, element)
+            optional_result_object << accumulator
           else
             accumulator = method(some_method).call(accumulator, element, idx)
+            optional_result_object << accumulator
           end
 
         elsif some_method.class == Method
@@ -270,41 +289,73 @@ module Seda
 
           if args.length < 3
             accumulator = some_method.call(accumulator, element)
+            optional_result_object << accumulator
           else
             accumulator = some_method.call(accumulator, element, idx)
+            optional_result_object << accumulator
           end
 
         end
 
       end
 
-    elsif collection.class == Hash
-      accumulator = collection.values[0]
+    elsif cloned_collection.class == Hash
+      accumulator = cloned_collection.values[0]
 
-      for k in collection
+      for k in cloned_collection
 
         if counter == 0
+          optional_result_object[k[0]] = accumulator
           counter = 1
           next
         else
 
           if some_method.class == String
-            accumulator = method(some_method.to_sym).call(accumulator, k[1])
+            args = some_method.parameters.map { |arg| arg[1].to_s }
+
+            if args.length < 3
+              accumulator = method(some_method.to_sym).call(accumulator, k[1])
+              optional_result_object[k[0]] = accumulator
+            else
+              accumulator = method(some_method.to_sym).call(accumulator, k[1], counter)
+              optional_result_object[k[0]] = accumulator
+            end
           elsif some_method.class == Symbol
-            accumulator = method(some_method).call(accumulator, k[1])
+            args = some_method.parameters.map { |arg| arg[1].to_s }
+
+            if args.length < 3
+              accumulator = method(some_method).call(accumulator, k[1])
+              optional_result_object[k[0]] = accumulator
+            else
+              accumulator = method(some_method).call(accumulator, k[1], counter)
+              optional_result_object[k[0]] = accumulator
+            end
           elsif some_method.class == Method
-            accumulator = some_method.call(accumulator, k[1])
+            args = some_method.parameters.map { |arg| arg[1].to_s }
+
+            if args.length < 3
+              accumulator = some_method.call(accumulator, k[1])
+              optional_result_object[k[0]] = accumulator
+            else
+              accumulator = some_method.call(accumulator, k[1], counter)
+              optional_result_object[k[0]] = accumulator
+            end
           end
 
         end
+        counter = counter + 1
 
       end
 
     else
-      return collection
+      return cloned_collection
     end
 
-    accumulator
+    if accumulator.class == Float || accumulator.class == Integer
+      accumulator
+    else
+      cloned_collection
+    end
   end
 
 
@@ -334,15 +385,17 @@ module Seda
 
   def self.delay(some_method, wait, *some_method_args)
     args = eval(local_variables[2].to_s)
+
+    if some_method.class == String
+      some_method = some_method.to_sym
+      some_method = method(some_method)
+    elsif some_method.class == Symbol
+      some_method = method(some_method)
+    end
+
     if some_method.class == Method
       sleep (wait.to_f/1000)
       some_method.call(*args)
-    elsif some_method.class == Symbol
-      sleep (wait.to_f/1000)
-      method(some_method).call(*args)
-    elsif some_method.class == String
-      sleep (wait.to_f/1000)
-      method(some_method.to_sym).call(*args)
     else
       raise ArgumentError.new('First argument must reference a method')
     end
