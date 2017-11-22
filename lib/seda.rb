@@ -134,18 +134,15 @@ module Seda
   end
 
   def self.shuffle(arr)
-    cloned_arr = arr.clone
-    pos = ''
-    temp = []
+    counter = arr.length - 1
 
-    cloned_arr.each_with_index do |item, i|
-      pos = (Random.new().rand * cloned_arr.length).floor
-      temp = cloned_arr[i]
-      cloned_arr[i] = cloned_arr[pos]
-      cloned_arr[pos] = temp
+    while counter > 0
+      random_index = rand(counter)
+      arr[counter], arr[random_index] = arr[random_index], arr[counter]
+      counter -= 1
     end
 
-    cloned_arr
+    arr
   end
 
   def self.filter(collection, some_method)
@@ -483,7 +480,7 @@ module Seda
       some_method = method(some_method)
     end
 
-    result = lambda{|a = b, arg = b.to_json|
+    result = lambda{|a = b, arg = b.to_s|
       if !storage[arg]
         storage[arg] = some_method.call(*a)
       end
@@ -496,19 +493,20 @@ module Seda
 
 
   def self.some(collection, some_method)
+    result = true
     collection.each do |item|
       if some_method.class == Method
-        return !some_method.call(item)
+        result = some_method.call(item)
       elsif some_method.class == Symbol
-        return !method(some_method).call(item)
+        result = method(some_method).call(item)
       elsif some_method.class == String
-        return !method(some_method.to_sym).call(item)
+        result = method(some_method.to_sym).call(item)
       else
         raise ArgumentError.new('First argument must reference a method')
       end
     end
 
-    return true
+    return result
   end
 
 

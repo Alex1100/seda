@@ -84,7 +84,7 @@ describe Seda do
   end
 
   it "tests the shuffe method" do
-    test_result = Seda.shuffle(Seda.shuffle([1, 2, 3, 4]))
+    test_result = Seda.shuffle([1, 2, 3, 4])
 
     expect(test_result).to_not eq([1, 2, 3, 4])
     expect(test_result.size).to eq([1, 2, 3, 4].size)
@@ -231,10 +231,52 @@ describe Seda do
 
 
   it "tests the map method" do
+    def double_it(element, idx, collection)
+      element * 2
+    end
 
+    test_result = Seda.map([1, 2, 3, 4], method(:double_it))
+    test_variant_2 = Seda.map({'a'=> 1, 'b' => 2, 'c' => 3, 'd' => 4}, method(:double_it))
+
+    expect(test_result).to eq([2, 4, 6, 8])
+    expect {Seda.map([1, 2, 3, 4], 'double_it')}.to raise_error(NameError)
+    expect(test_variant_2).to eq([2, 4, 6, 8])
   end
 
 
+  it "tests the memoize method" do
+    def say_hello(a)
+      a + " there."
+    end
 
+    test_result = Seda.memoize(method(:say_hello), 'hi')
+
+    expect(test_result).to eq("hi there.")
+  end
+
+
+  it "tests the some method" do
+    def is_it_even(element)
+      element % 2 == 0
+    end
+
+    test_result = Seda.some([1, 2, 3, 4], method(:is_it_even))
+    test_result_2 = Seda.some([1, 3, 5, 7], method(:is_it_even))
+
+    expect(test_result).to be(true)
+    expect(test_result_2).to be(false)
+  end
+
+  it "tests the sort_by_max method" do
+    test_result = Seda.sort_by_max([10, 4, 99, 30, 23])
+
+    expect(test_result).to eq([99, 30, 23, 10, 4])
+  end
+
+  it "tests the sort_by_min method" do
+    test_result = Seda.sort_by_min([10, 4, 99, 30, 23])
+
+    expect(test_result).to eq([4, 10, 23, 30, 99])
+  end
 
 end

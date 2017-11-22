@@ -1,4 +1,4 @@
-# Seda: An underbar/lodash like gem for Ruby
+# <a href="https://rubygems.org/gems/seda">Seda</a>: An underbar/lodash like gem for Ruby
 
 ## Installation
 
