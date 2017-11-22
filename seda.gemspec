@@ -9,8 +9,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Alexander Aleksanyan"]
   spec.email         = ["alex1100.software@gmail.com"]
 
-  spec.summary       = %q{Familiar Methods From Underbar/Lodash}
-  spec.description   = %q{Familiar Methods From Underbar and Lodash Ported Over To Ruby}
+  spec.summary       = %q{Familiar Methods From Underscore/Lodash}
+  spec.description   = %q{Familiar Methods From Underscore and Lodash Ported Over To Ruby}
   spec.homepage      = "https://github.com/Alex1100/seda"
   spec.license       = "MIT"
 
